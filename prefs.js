@@ -4,6 +4,8 @@ import Gtk from 'gi://Gtk';
 
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
+Gio._promisify(Gio.Subprocess.prototype, 'communicate_utf8_async', 'communicate_utf8_finish');
+
 export default class BtrfsGuardPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         const settings = this.getSettings();
@@ -78,18 +80,30 @@ export default class BtrfsGuardPreferences extends ExtensionPreferences {
         const detectAndAdd = async () => {
             try {
                 const proc = new Gio.Subprocess({
-                    argv: ['findmnt', '-rnbo', 'TARGET,FSTYPE', '-t', 'btrfs'],
+                    argv: ['findmnt', '-rno', 'TARGET,UUID,FSTYPE', '-t', 'btrfs'],
                     flags: Gio.SubprocessFlags.STDOUT_PIPE,
                 });
                 proc.init(null);
                 const [stdout] = await proc.communicate_utf8_async(null, null);
                 const existing = new Set(settings.get_strv('mounts'));
+                const mounts = [];
                 for (const line of (stdout ?? '').trim().split('\n')) {
-                    const [target, fstype] = line.trim().split(/\s+/);
-                    if (fstype === 'btrfs' && target && !existing.has(target)) {
-                        addMountRow(target);
-                        existing.add(target);
-                    }
+                    // single-space split: UUID may be empty
+                    const [rawTarget, uuid, fstype] = line.trim().split(' ');
+                    // findmnt -r escapes special characters as \xHH
+                    const target = rawTarget?.replace(/\\x([0-9a-fA-F]{2})/g,
+                        (_m, h) => String.fromCharCode(parseInt(h, 16)));
+                    if (fstype === 'btrfs' && target)
+                        mounts.push({target, uuid});
+                }
+                // one indicator per filesystem: skip stale mounts without a UUID
+                // and further mounts of a filesystem that is already watched
+                const seen = new Set(mounts.filter(m => existing.has(m.target)).map(m => m.uuid));
+                for (const {target, uuid} of mounts) {
+                    if (!uuid || seen.has(uuid) || existing.has(target))
+                        continue;
+                    addMountRow(target);
+                    seen.add(uuid);
                 }
                 saveMounts();
             } catch (e) {

@@ -298,16 +298,24 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
             this._setBusy(false);
             await this._refresh();
         }
-        const dialog = new ModalDialog.ModalDialog({styleClass: 'prompt-dialog'});
-        dialog.contentLayout.add_child(new St.Label({
-            text: format(_('btrfs filesystem usage %s'), this._mount),
-            style: 'font-weight: bold; padding-bottom: 8px;',
-        }));
-        const scroll = new St.ScrollView({style: 'max-height: 520px;'});
-        scroll.add_child(new St.Label({text: text.trim(), style: 'font-family: monospace;'}));
-        dialog.contentLayout.add_child(scroll);
-        dialog.addButton({label: _('Close'), action: () => dialog.close(), key: Clutter.KEY_Escape});
-        dialog.open();
+        try {
+            const dialog = new ModalDialog.ModalDialog({styleClass: 'prompt-dialog'});
+            dialog.contentLayout.add_child(new St.Label({
+                text: format(_('btrfs filesystem usage %s'), this._mount),
+                style: 'font-weight: bold; padding-bottom: 8px;',
+            }));
+            const scroll = new St.ScrollView({style: 'max-height: 520px;'});
+            // St.ScrollView only accepts St.Scrollable children (a bare St.Label renders nothing)
+            const body = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL});
+            body.add_child(new St.Label({text: text.trim(), style: 'font-family: monospace;'}));
+            scroll.add_child(body);
+            dialog.contentLayout.add_child(scroll);
+            dialog.addButton({label: _('Close'), action: () => dialog.close(), key: Clutter.KEY_Escape});
+            dialog.open();
+        } catch (e) {
+            console.error(`btrfs-guard: cannot show usage dialog: ${e}\n${e.stack}`);
+            this._notify(_('Btrfs Guard'), `${e}`);
+        }
     }
 
     destroy() {
