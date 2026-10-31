@@ -23,7 +23,7 @@ Btrfs Guard continuously monitors unallocated space and offers one-click balanci
 
 ## Settings
 
-Open via *Extensions* app → Btrfs Guard → gear icon (or `gnome-extensions prefs btrfs-guard@ak.local`):
+Open via *Extensions* app → Btrfs Guard → gear icon (or `gnome-extensions prefs btrfs-guard@ak0.org`):
 
 - **Watched partitions** — list of btrfs mount points; one panel indicator each. Add manually or click *Detect btrfs mounts* to auto-fill all btrfs filesystems from `findmnt`.
 - **Chunk usage threshold** — the `N` in `balance -dusage=N` (0–100 %, default 60).
@@ -45,7 +45,7 @@ msgfmt po/<lang>.po -o locale/<lang>/LC_MESSAGES/btrfs-guard.mo
 git clone https://github.com/catlion/btrfs-guard-gnome-ext.git
 cd btrfs-guard-gnome-ext
 glib-compile-schemas schemas
-cp -r . ~/.local/share/gnome-shell/extensions/btrfs-guard@ak.local
+cp -r . ~/.local/share/gnome-shell/extensions/btrfs-guard@ak0.org
 # log out / restart GNOME Shell to load
 ```
 

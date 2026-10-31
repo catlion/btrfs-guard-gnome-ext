@@ -1,9 +1,10 @@
 {
-  "uuid": "btrfs-guard@ak.local",
+  "uuid": "btrfs-guard@ak0.org",
   "name": "Btrfs Guard",
-  "description": "Shows unallocated space of configured btrfs partitions, alerts when below 1 GiB, and runs balance -dusage=N / filesystem usage via pkexec.",
+  "description": "Shows unallocated space of configured btrfs partitions (selected in settings), alerts when below 1 GiB, and reclaims it via balance -dusage=N (threshold configurable) / filesystem usage, run with pkexec.",
   "settings-schema": "org.gnome.shell.extensions.btrfs-guard",
   "gettext-domain": "btrfs-guard",
+  "url": "https://github.com/catlion/btrfs-guard-gnome-ext",
   "shell-version": ["46", "47", "48", "49", "50", "51"],
   "version": 2
 }

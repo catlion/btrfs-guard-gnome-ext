@@ -16,9 +16,11 @@ export default class BtrfsGuardPreferences extends ExtensionPreferences {
 
         // --- Watched partitions ---
 
+        const DESCRIPTION = _('Btrfs mount points monitored in the panel. One indicator is shown per mount point.');
+        const EMPTY_WARNING = _('No partitions configured — the panel indicator is disabled.');
         const mountsGroup = new Adw.PreferencesGroup({
             title: _('Watched partitions'),
-            description: _('Btrfs mount points monitored in the panel. One indicator is shown per mount point.'),
+            description: DESCRIPTION,
         });
         page.add(mountsGroup);
 
@@ -34,6 +36,7 @@ export default class BtrfsGuardPreferences extends ExtensionPreferences {
                 .map(row => row._entry.text.trim())
                 .filter(m => m.length > 0);
             settings.set_strv('mounts', mounts);
+            mountsGroup.description = mounts.length > 0 ? DESCRIPTION : EMPTY_WARNING;
         };
 
         const addMountRow = mount => {
@@ -69,6 +72,8 @@ export default class BtrfsGuardPreferences extends ExtensionPreferences {
 
         for (const mount of settings.get_strv('mounts'))
             addMountRow(mount);
+        if (settings.get_strv('mounts').length === 0)
+            mountsGroup.description = EMPTY_WARNING;
 
         const detectAndAdd = async () => {
             try {

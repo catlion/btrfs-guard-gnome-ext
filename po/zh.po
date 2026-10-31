@@ -144,3 +144,10 @@ msgstr "块使用率阈值"
 #: prefs.js:134
 msgid "Used by balance -dusage=N (0–100%)"
 msgstr "由 balance -dusage=N 使用（0–100%）"
+
+msgid "Balance completed"
+msgstr "平衡已完成"
+
+msgid "No partitions configured — the panel indicator is disabled."
+msgstr "未配置任何分区 — 面板指示器已禁用。"
+

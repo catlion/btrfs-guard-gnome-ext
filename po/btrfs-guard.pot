@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: btrfs-guard 2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 18:42+0300\n"
+"POT-Creation-Date: 2026-10-31 20:03+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,85 +17,89 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: extension.js:85
+#: extension.js:103
 msgid "Reclaim empty chunks  (balance -dusage=0)"
 msgstr ""
 
-#: extension.js:94
+#: extension.js:112
 msgid "Show filesystem usage…"
 msgstr ""
 
-#: extension.js:101
+#: extension.js:119
 #, javascript-format
 msgid "Compact chunks <%d%% full  (balance -dusage=%d)"
 msgstr ""
 
-#: extension.js:148
+#: extension.js:206
 #, javascript-format
 msgid "%s unallocated: %s of %s"
 msgstr ""
 
-#: extension.js:149
+#: extension.js:207
 #, javascript-format
 msgid "Data: %s used of %s"
 msgstr ""
 
-#: extension.js:150
+#: extension.js:208
 #, javascript-format
 msgid "Metadata: %s used of %s"
 msgstr ""
 
-#: extension.js:156
+#: extension.js:214
 msgid "Btrfs: low unallocated space"
 msgstr ""
 
-#: extension.js:157
+#: extension.js:215
 #, javascript-format
 msgid ""
 "%s has only %s unallocated. Metadata cannot grow and writes will stall. Open "
 "the Btrfs Guard menu to reclaim space."
 msgstr ""
 
-#: extension.js:193
+#: extension.js:263
 #, javascript-format
 msgid "balancing -dusage=%d…"
 msgstr ""
 
-#: extension.js:194
+#: extension.js:264
 #, javascript-format
 msgid "Btrfs balance -dusage=%d"
 msgstr ""
 
-#: extension.js:200
-#, javascript-format
-msgid "%s finished"
-msgstr ""
-
-#: extension.js:201
-#, javascript-format
-msgid "Unallocated now: %s"
-msgstr ""
-
-#: extension.js:203
+#: extension.js:269
 #, javascript-format
 msgid "%s cancelled"
 msgstr ""
 
-#: extension.js:203
+#: extension.js:269 extension.js:294
 msgid "Authentication was dismissed or denied."
 msgstr ""
 
-#: extension.js:205 extension.js:208
+#: extension.js:271 extension.js:279
 #, javascript-format
 msgid "%s failed"
 msgstr ""
 
-#: extension.js:235
+#: extension.js:274
+msgid "Balance completed"
+msgstr ""
+
+#: extension.js:275
+#, javascript-format
+msgid "%s finished"
+msgstr ""
+
+#: extension.js:276
+#, javascript-format
+msgid "Unallocated now: %s"
+msgstr ""
+
+#: extension.js:303
 #, javascript-format
 msgid "btrfs filesystem usage %s"
 msgstr ""
 
-#: extension.js:241
+#: extension.js:309
 msgid "Close"
 msgstr ""
 
@@ -103,42 +107,46 @@ msgstr ""
 msgid "Btrfs Guard"
 msgstr ""
 
-#: prefs.js:20
-msgid "Watched partitions"
-msgstr ""
-
-#: prefs.js:21
+#: prefs.js:19
 msgid ""
 "Btrfs mount points monitored in the panel. One indicator is shown per mount "
 "point."
 msgstr ""
 
-#: prefs.js:57
+#: prefs.js:20
+msgid "No partitions configured — the panel indicator is disabled."
+msgstr ""
+
+#: prefs.js:22
+msgid "Watched partitions"
+msgstr ""
+
+#: prefs.js:60
 msgid "Remove this mount point"
 msgstr ""
 
-#: prefs.js:101
+#: prefs.js:106
 msgid "Add"
 msgstr ""
 
-#: prefs.js:115
+#: prefs.js:120
 msgid "Detect btrfs mounts"
 msgstr ""
 
-#: prefs.js:127
+#: prefs.js:132
 msgid "Space reclaim"
 msgstr ""
 
-#: prefs.js:128
+#: prefs.js:133
 msgid ""
 "Chunks that are less full than this percentage are compacted by the "
 "\"balance -dusage=N\" menu action."
 msgstr ""
 
-#: prefs.js:133
+#: prefs.js:138
 msgid "Chunk usage threshold"
 msgstr ""
 
-#: prefs.js:134
+#: prefs.js:139
 msgid "Used by balance -dusage=N (0–100%)"
 msgstr ""

@@ -17,6 +17,8 @@ const POLL_SECONDS = 30;
 const REALERT_SECONDS = 30 * 60;
 
 Gio._promisify(Gio.File.prototype, 'load_contents_async', 'load_contents_finish');
+Gio._promisify(Gio.File.prototype, 'enumerate_children_async', 'enumerate_children_finish');
+Gio._promisify(Gio.FileEnumerator.prototype, 'next_files_async', 'next_files_finish');
 Gio._promisify(Gio.Subprocess.prototype, 'communicate_utf8_async', 'communicate_utf8_finish');
 
 function fmt(bytes) {
@@ -54,6 +56,20 @@ async function readText(path) {
     return new TextDecoder().decode(bytes).trim();
 }
 
+async function listDir(path) {
+    const dir = Gio.File.new_for_path(path);
+    const enumerator = await dir.enumerate_children_async(
+        'standard::name,standard::symlink-target', Gio.FileQueryInfoFlags.NONE, GLib.PRIORITY_DEFAULT, null);
+    const out = [];
+    let files;
+    do {
+        files = await enumerator.next_files_async(100, GLib.PRIORITY_DEFAULT, null);
+        out.push(...files);
+    } while (files.length > 0);
+    enumerator.close(null);
+    return out;
+}
+
 const Indicator = GObject.registerClass(
 class BtrfsGuardIndicator extends PanelMenu.Button {
     _init(ext, mount) {
@@ -61,8 +77,10 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
         this._ext = ext;
         this._mount = mount;
         this._busy = false;
+        this._refreshing = false;
+        this._resolveFailed = false;
         this._sysfs = null;      // /sys/fs/btrfs/<uuid>
-        this._devSize = null;    // /sys/class/block/<dev>/size
+        this._devSize = null;    // /sys/class/block/<dev>/size (single-device fallback)
         this._lastAlert = 0;
         this._alerted = false;
         this._source = null;
@@ -101,28 +119,64 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
         this._balanceN.label.text = format(_('Compact chunks <%d%% full  (balance -dusage=%d)'), dusage, dusage);
     }
 
-    async start() {
+    async _resolve() {
+        if (this._sysfs)
+            return true;
         try {
             const uuid = (await run(['findmnt', '-no', 'UUID', '-T', this._mount])).stdout.trim();
             const src = (await run(['findmnt', '-no', 'SOURCE', '-T', this._mount])).stdout.trim();
             const dev = GLib.path_get_basename(src.replace(/\[.*\]$/, ''));
             this._sysfs = `/sys/fs/btrfs/${uuid}`;
             this._devSize = `/sys/class/block/${dev}/size`;
+            this._resolveFailed = false;
+            return true;
         } catch (e) {
             this._label.text = 'n/a';
-            console.error(`btrfs-guard: cannot resolve ${this._mount}: ${e}`);
-            return;
+            if (!this._resolveFailed) {
+                this._resolveFailed = true;
+                console.error(`btrfs-guard: cannot resolve ${this._mount}: ${e}`);
+            }
+            return false;
         }
-        await this._refresh();
+    }
+
+    async start() {
+        await this._tick();
         this._timer = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, POLL_SECONDS, () => {
-            this._refresh();
+            this._tick();
             return GLib.SOURCE_CONTINUE;
         });
     }
 
+    async _tick() {
+        if (await this._resolve())
+            await this._refresh();
+    }
+
+    // total size of all member devices listed in sysfs; falls back to the
+    // single device reported by findmnt (e.g. devices dir unreadable)
+    async _deviceSize() {
+        try {
+            let total = 0;
+            for (const info of await listDir(`${this._sysfs}/devices`)) {
+                const dev = GLib.path_get_basename(info.get_symlink_target() || info.get_name());
+                try {
+                    total += Number(await readText(`/sys/class/block/${dev}/size`)) * 512;
+                } catch {
+                    // member device unreadable or virtual; skip it
+                }
+            }
+            if (total > 0)
+                return total;
+        } catch (e) {
+            // fall through to single-device fallback
+        }
+        return Number(await readText(this._devSize)) * 512;
+    }
+
     async _stats() {
         const num = async p => Number(await readText(p));
-        const devSize = (await num(this._devSize)) * 512;
+        const devSize = await this._deviceSize();
         let allocated = 0;
         const space = {};
         for (const t of ['data', 'metadata', 'system']) {
@@ -134,32 +188,39 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
     }
 
     async _refresh() {
-        let s;
-        try {
-            s = await this._stats();
-        } catch (e) {
-            this._label.text = 'n/a';
+        if (this._refreshing || !this._sysfs)
             return null;
-        }
-        const low = s.unalloc < THRESHOLD;
-        this._label.text = fmt(s.unalloc);
-        this._icon.icon_name = low ? 'dialog-warning-symbolic' : 'drive-harddisk-symbolic';
-        this._label.style = low ? 'color: #ff5555; font-weight: bold;' : '';
-        this._info.unalloc.label.text = format(_('%s unallocated: %s of %s'), this._mount, fmt(s.unalloc), fmt(s.devSize));
-        this._info.data.label.text = format(_('Data: %s used of %s'), fmt(s.space.data.used), fmt(s.space.data.total));
-        this._info.meta.label.text = format(_('Metadata: %s used of %s'), fmt(s.space.metadata.used), fmt(s.space.metadata.total));
+        this._refreshing = true;
+        try {
+            let s;
+            try {
+                s = await this._stats();
+            } catch (e) {
+                this._label.text = 'n/a';
+                return null;
+            }
+            const low = s.unalloc < THRESHOLD;
+            this._label.text = fmt(s.unalloc);
+            this._icon.icon_name = low ? 'dialog-warning-symbolic' : 'drive-harddisk-symbolic';
+            this._label.style = low ? 'color: #ff5555; font-weight: bold;' : '';
+            this._info.unalloc.label.text = format(_('%s unallocated: %s of %s'), this._mount, fmt(s.unalloc), fmt(s.devSize));
+            this._info.data.label.text = format(_('Data: %s used of %s'), fmt(s.space.data.used), fmt(s.space.data.total));
+            this._info.meta.label.text = format(_('Metadata: %s used of %s'), fmt(s.space.metadata.used), fmt(s.space.metadata.total));
 
-        const now = GLib.get_monotonic_time() / 1e6;
-        if (low && (!this._alerted || now - this._lastAlert > REALERT_SECONDS)) {
-            this._alerted = true;
-            this._lastAlert = now;
-            this._notify(_('Btrfs: low unallocated space'),
-                format(_('%s has only %s unallocated. Metadata cannot grow and writes will stall. ' +
-                'Open the Btrfs Guard menu to reclaim space.'), this._mount, fmt(s.unalloc)), true);
-        } else if (!low) {
-            this._alerted = false;
+            const now = GLib.get_monotonic_time() / 1e6;
+            if (low && (!this._alerted || now - this._lastAlert > REALERT_SECONDS)) {
+                this._alerted = true;
+                this._lastAlert = now;
+                this._notify(_('Btrfs: low unallocated space'),
+                    format(_('%s has only %s unallocated. Metadata cannot grow and writes will stall. ' +
+                    'Open the Btrfs Guard menu to reclaim space.'), this._mount, fmt(s.unalloc)), true);
+            } else if (!low) {
+                this._alerted = false;
+            }
+            return s;
+        } finally {
+            this._refreshing = false;
         }
-        return s;
     }
 
     _notify(title, body, critical = false) {
@@ -187,6 +248,15 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
             this._label.text = text;
     }
 
+    // stdout on success, null when the user dismissed the auth dialog, error output otherwise
+    _pkexecResult(r) {
+        if (r.status === 0)
+            return r.stdout;
+        if (r.status === 126 || r.status === 127)
+            return null;
+        return (r.stderr || r.stdout).trim();
+    }
+
     async _balance(usage) {
         if (this._busy)
             return;
@@ -194,15 +264,16 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
         const title = format(_('Btrfs balance -dusage=%d'), usage);
         try {
             const r = await run(['pkexec', BTRFS, 'balance', 'start', `-dusage=${usage}`, this._mount]);
-            if (r.status === 0) {
+            const result = this._pkexecResult(r);
+            if (result === null) {
+                this._notify(format(_('%s cancelled'), title), _('Authentication was dismissed or denied.'));
+            } else if (r.status !== 0) {
+                this._notify(format(_('%s failed'), title), result.split('\n').slice(-3).join('\n'));
+            } else {
                 const s = await this._refresh();
-                const summary = r.stdout.trim().split('\n').pop();
+                const summary = result.trim().split('\n').pop() || _('Balance completed');
                 this._notify(format(_('%s finished'), title),
                     s ? `${summary}\n${format(_('Unallocated now: %s'), fmt(s.unalloc))}` : summary);
-            } else if (r.status === 126 || r.status === 127) {
-                this._notify(format(_('%s cancelled'), title), _('Authentication was dismissed or denied.'));
-            } else {
-                this._notify(format(_('%s failed'), title), (r.stderr || r.stdout).trim().split('\n').slice(-3).join('\n'));
             }
         } catch (e) {
             this._notify(format(_('%s failed'), title), `${e}`);
@@ -219,11 +290,8 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
         let text;
         try {
             const r = await run(['pkexec', BTRFS, 'filesystem', 'usage', this._mount]);
-            text = r.status === 0
-                ? r.stdout
-                : (r.status === 126 || r.status === 127
-                    ? 'Authentication was dismissed or denied.'
-                    : (r.stderr || r.stdout));
+            const result = this._pkexecResult(r);
+            text = result === null ? _('Authentication was dismissed or denied.') : result;
         } catch (e) {
             text = `${e}`;
         } finally {
@@ -256,16 +324,18 @@ export default class BtrfsGuardExtension extends Extension {
     enable() {
         this._settings = this.getSettings();
         this._indicators = [];
-        this._settings.connect('changed::mounts', () => this._rebuild());
-        this._settings.connect('changed::dusage', () => {
-            for (const i of this._indicators)
-                i._updateBalanceItem();
-        });
+        this._handlers = [
+            this._settings.connect('changed::mounts', () => this._rebuild()),
+            this._settings.connect('changed::dusage', () => {
+                for (const i of this._indicators)
+                    i._updateBalanceItem();
+            }),
+        ];
         this._rebuild();
     }
 
     _rebuild() {
-        for (const i of this._indicators ?? [])
+        for (const i of this._indicators)
             i.destroy();
         this._indicators = [];
         for (const mount of this._settings.get_strv('mounts')) {
@@ -279,7 +349,10 @@ export default class BtrfsGuardExtension extends Extension {
     }
 
     disable() {
-        for (const i of this._indicators ?? [])
+        for (const id of this._handlers)
+            this._settings.disconnect(id);
+        this._handlers = [];
+        for (const i of this._indicators)
             i.destroy();
         this._indicators = [];
         this._settings = null;

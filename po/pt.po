@@ -148,3 +148,10 @@ msgstr "Limite de utilização do chunk"
 #: prefs.js:134
 msgid "Used by balance -dusage=N (0–100%)"
 msgstr "Usado por balance -dusage=N (0–100%)"
+
+msgid "Balance completed"
+msgstr "Equilíbrio concluído"
+
+msgid "No partitions configured — the panel indicator is disabled."
+msgstr "Nenhuma partição configurada — o indicador do painel está desativado."
+

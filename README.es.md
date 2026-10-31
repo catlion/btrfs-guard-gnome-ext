@@ -21,7 +21,7 @@ Btrfs Guard supervisa continuamente el espacio sin asignar y ofrece equilibrado 
 
 ## Ajustes
 
-Se abren desde la aplicación *Extensiones* → Btrfs Guard → icono de engranaje (o con `gnome-extensions prefs btrfs-guard@ak.local`):
+Se abren desde la aplicación *Extensiones* → Btrfs Guard → icono de engranaje (o con `gnome-extensions prefs btrfs-guard@ak0.org`):
 
 - **Particiones vigiladas**: lista de puntos de montaje de btrfs; un indicador en el panel por cada uno. Añádelos manualmente o pulsa *Detectar montajes de btrfs* para rellenar automáticamente todos los sistemas de archivos btrfs a partir de `findmnt`.
 - **Umbral de uso de fragmentos**: la `N` en `balance -dusage=N` (0–100 %, por defecto 60).
@@ -43,7 +43,7 @@ msgfmt po/<lang>.po -o locale/<lang>/LC_MESSAGES/btrfs-guard.mo
 git clone https://github.com/catlion/btrfs-guard-gnome-ext.git
 cd btrfs-guard-gnome-ext
 glib-compile-schemas schemas
-cp -r . ~/.local/share/gnome-shell/extensions/btrfs-guard@ak.local
+cp -r . ~/.local/share/gnome-shell/extensions/btrfs-guard@ak0.org
 # cierra sesión / reinicia GNOME Shell para cargarla
 ```
 

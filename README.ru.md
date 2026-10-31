@@ -21,7 +21,7 @@ Btrfs Guard постоянно отслеживает нераспределён
 
 ## Настройки
 
-Открываются через приложение *Extensions* → Btrfs Guard → значок шестерёнки (или `gnome-extensions prefs btrfs-guard@ak.local`):
+Открываются через приложение *Extensions* → Btrfs Guard → значок шестерёнки (или `gnome-extensions prefs btrfs-guard@ak0.org`):
 
 - **Отслеживаемые разделы** — список точек монтирования btrfs; для каждой — отдельный индикатор на панели. Можно добавить вручную или нажать *Detect btrfs mounts*, чтобы автоматически добавить все файловые системы btrfs из `findmnt`.
 - **Порог использования чанков** — `N` в `balance -dusage=N` (0–100 %, по умолчанию 60).
@@ -43,7 +43,7 @@ msgfmt po/<lang>.po -o locale/<lang>/LC_MESSAGES/btrfs-guard.mo
 git clone https://github.com/catlion/btrfs-guard-gnome-ext.git
 cd btrfs-guard-gnome-ext
 glib-compile-schemas schemas
-cp -r . ~/.local/share/gnome-shell/extensions/btrfs-guard@ak.local
+cp -r . ~/.local/share/gnome-shell/extensions/btrfs-guard@ak0.org
 # выйдите из сеанса или перезапустите GNOME Shell, чтобы загрузить расширение
 ```
 

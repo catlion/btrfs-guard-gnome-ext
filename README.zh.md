@@ -21,7 +21,7 @@ Btrfs Guard 会持续监视未分配空间，并提供一键平衡（balance）�
 
 ## 设置
 
-通过 *Extensions* 应用 → Btrfs Guard → 齿轮图标打开（或运行 `gnome-extensions prefs btrfs-guard@ak.local`）：
+通过 *Extensions* 应用 → Btrfs Guard → 齿轮图标打开（或运行 `gnome-extensions prefs btrfs-guard@ak0.org`）：
 
 - **监视的分区**——btrfs 挂载点列表；每个挂载点对应一个面板指示器。可手动添加，或点击 *Detect btrfs mounts* 从 `findmnt` 自动填充所有 btrfs 文件系统。
 - **块使用率阈值**——`balance -dusage=N` 中的 `N`（0–100%，默认 60）。
@@ -43,7 +43,7 @@ msgfmt po/<lang>.po -o locale/<lang>/LC_MESSAGES/btrfs-guard.mo
 git clone https://github.com/catlion/btrfs-guard-gnome-ext.git
 cd btrfs-guard-gnome-ext
 glib-compile-schemas schemas
-cp -r . ~/.local/share/gnome-shell/extensions/btrfs-guard@ak.local
+cp -r . ~/.local/share/gnome-shell/extensions/btrfs-guard@ak0.org
 # 注销或重启 GNOME Shell 以加载扩展
 ```
 

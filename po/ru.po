@@ -148,3 +148,10 @@ msgstr "Порог заполнения блоков"
 #: prefs.js:134
 msgid "Used by balance -dusage=N (0–100%)"
 msgstr "Используется в balance -dusage=N (0–100%)"
+
+msgid "Balance completed"
+msgstr "Балансировка завершена"
+
+msgid "No partitions configured — the panel indicator is disabled."
+msgstr "Разделы не настроены — индикатор на панели отключён."
+

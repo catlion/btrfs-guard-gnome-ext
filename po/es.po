@@ -148,3 +148,10 @@ msgstr "Umbral de uso de fragmentos"
 #: prefs.js:134
 msgid "Used by balance -dusage=N (0–100%)"
 msgstr "Usado por balance -dusage=N (0–100 %)"
+
+msgid "Balance completed"
+msgstr "Equilibrado completado"
+
+msgid "No partitions configured — the panel indicator is disabled."
+msgstr "No hay particiones configuradas — el indicador del panel está desactivado."
+
