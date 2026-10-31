@@ -3,3 +3,4 @@ locale/
 *.mo
 venv/
 .docs/
+out/
