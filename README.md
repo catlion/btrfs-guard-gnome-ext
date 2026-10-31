@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/icon.png" alt="Btrfs Guard" width="96"></p>
+
 # Btrfs Guard — GNOME Shell extension
 
 Panel indicator that watches the **unallocated space** of your btrfs filesystems and helps you reclaim it before writes stall.

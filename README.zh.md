@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/icon.png" alt="Btrfs Guard" width="96"></p>
+
 # Btrfs Guard — GNOME Shell 扩展
 
 面板指示器，用于监视 btrfs 文件系统的**未分配空间**，并帮助你在写入卡住之前回收空间。

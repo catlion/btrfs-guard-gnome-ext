@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/icon.png" alt="Btrfs Guard" width="96"></p>
+
 # Btrfs Guard — GNOME-Shell-Erweiterung
 
 Panel-Indikator, der den **nicht zugewiesenen Speicherplatz** Ihrer btrfs-Dateisysteme überwacht und hilft, ihn freizugeben, bevor Schreibvorgänge blockiert werden.

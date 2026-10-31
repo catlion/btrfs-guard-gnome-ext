@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/icon.png" alt="Btrfs Guard" width="96"></p>
+
 # Btrfs Guard — extensão GNOME Shell
 
 Indicador no painel que monitoriza o **espaço não alocado** dos seus sistemas de ficheiros btrfs e ajuda a recuperá-lo antes que as escritas bloqueiem.

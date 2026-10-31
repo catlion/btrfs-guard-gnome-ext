@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/icon.png" alt="Btrfs Guard" width="96"></p>
+
 # Btrfs Guard — إضافة GNOME Shell
 
 مؤشر في اللوحة يراقب **المساحة غير المخصصة** لأنظمة ملفات btrfs لديك، ويساعدك على استعادتها قبل أن تتوقف عمليات الكتابة.

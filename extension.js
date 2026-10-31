@@ -325,6 +325,9 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
         }
         this._source?.destroy();
         super.destroy();
+        this._balance0 = null;
+        this._balanceN = null;
+        this._usage = null;
     }
 });
 
