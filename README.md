@@ -2,6 +2,8 @@
 
 Panel indicator that watches the **unallocated space** of your btrfs filesystems and helps you reclaim it before writes stall.
 
+**Languages:** [English](README.md) · [Русский](README.ru.md) · [中文](README.zh.md) · [Español](README.es.md) · [Français](README.fr.md) · [Português](README.pt.md)
+
 ## How it works
 
 btrfs does not free disk space back to "unallocated" when files are deleted. Space is handed out in fixed-size **chunks** (typically 1 GiB for data, 256 MiB for metadata). When btrfs runs out of unallocated space it cannot allocate new chunks — metadata can no longer grow and writes stall, even though `df` may still look fine. Recovery at that point is painful.

@@ -1,0 +1,146 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the btrfs-guard package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: btrfs-guard 2\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-31 18:42+0300\n"
+"PO-Revision-Date: 2026-10-31 18:45+0300\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Chinese (Simplified)\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: extension.js:85
+msgid "Reclaim empty chunks  (balance -dusage=0)"
+msgstr "回收空闲块（balance -dusage=0）"
+
+#: extension.js:94
+msgid "Show filesystem usage…"
+msgstr "显示文件系统用量…"
+
+#: extension.js:101
+#, javascript-format
+msgid "Compact chunks <%d%% full  (balance -dusage=%d)"
+msgstr "压缩使用率低于 %d%% 的块（balance -dusage=%d）"
+
+#: extension.js:148
+#, javascript-format
+msgid "%s unallocated: %s of %s"
+msgstr "%s 未分配：%s / %s"
+
+#: extension.js:149
+#, javascript-format
+msgid "Data: %s used of %s"
+msgstr "数据：已用 %s / 共 %s"
+
+#: extension.js:150
+#, javascript-format
+msgid "Metadata: %s used of %s"
+msgstr "元数据：已用 %s / 共 %s"
+
+#: extension.js:156
+msgid "Btrfs: low unallocated space"
+msgstr "Btrfs：未分配空间不足"
+
+#: extension.js:157
+#, javascript-format
+msgid ""
+"%s has only %s unallocated. Metadata cannot grow and writes will stall. Open "
+"the Btrfs Guard menu to reclaim space."
+msgstr ""
+"%s 仅剩 %s 未分配空间。元数据无法增长，写入将会卡住。请打开 Btrfs Guard "
+"菜单回收空间。"
+
+#: extension.js:193
+#, javascript-format
+msgid "balancing -dusage=%d…"
+msgstr "正在执行 balance -dusage=%d…"
+
+#: extension.js:194
+#, javascript-format
+msgid "Btrfs balance -dusage=%d"
+msgstr "Btrfs balance -dusage=%d"
+
+#: extension.js:200
+#, javascript-format
+msgid "%s finished"
+msgstr "%s 已完成"
+
+#: extension.js:201
+#, javascript-format
+msgid "Unallocated now: %s"
+msgstr "当前未分配空间：%s"
+
+#: extension.js:203
+#, javascript-format
+msgid "%s cancelled"
+msgstr "%s 已取消"
+
+#: extension.js:203
+msgid "Authentication was dismissed or denied."
+msgstr "身份验证已取消或被拒绝。"
+
+#: extension.js:205 extension.js:208
+#, javascript-format
+msgid "%s failed"
+msgstr "%s 失败"
+
+#: extension.js:235
+#, javascript-format
+msgid "btrfs filesystem usage %s"
+msgstr "btrfs filesystem usage %s"
+
+#: extension.js:241
+msgid "Close"
+msgstr "关闭"
+
+#: prefs.js:12
+msgid "Btrfs Guard"
+msgstr "Btrfs Guard"
+
+#: prefs.js:20
+msgid "Watched partitions"
+msgstr "监视的分区"
+
+#: prefs.js:21
+msgid ""
+"Btrfs mount points monitored in the panel. One indicator is shown per mount "
+"point."
+msgstr "面板中监视的 Btrfs 挂载点。每个挂载点显示一个指示器。"
+
+#: prefs.js:57
+msgid "Remove this mount point"
+msgstr "移除此挂载点"
+
+#: prefs.js:101
+msgid "Add"
+msgstr "添加"
+
+#: prefs.js:115
+msgid "Detect btrfs mounts"
+msgstr "检测 btrfs 挂载点"
+
+#: prefs.js:127
+msgid "Space reclaim"
+msgstr "空间回收"
+
+#: prefs.js:128
+msgid ""
+"Chunks that are less full than this percentage are compacted by the "
+"\"balance -dusage=N\" menu action."
+msgstr ""
+"使用率低于此百分比的块将通过菜单操作 \"balance -dusage=N\" 进行压缩。"
+
+#: prefs.js:133
+msgid "Chunk usage threshold"
+msgstr "块使用率阈值"
+
+#: prefs.js:134
+msgid "Used by balance -dusage=N (0–100%)"
+msgstr "由 balance -dusage=N 使用（0–100%）"
