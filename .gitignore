@@ -2,3 +2,4 @@ schemas/gschemas.compiled
 locale/
 *.mo
 venv/
+.docs/
