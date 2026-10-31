@@ -4,7 +4,7 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 
-import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
+import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
 import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
@@ -27,6 +27,16 @@ function fmt(bytes) {
         i++;
     }
     return `${bytes.toFixed(i >= 3 ? 2 : 0)} ${units[i]}`;
+}
+
+// printf-style interpolation for translated strings (%% escapes a literal %)
+function format(str, ...args) {
+    return str.replace(/%%|%([sd])/g, (m, type) => {
+        if (m === '%%')
+            return '%';
+        const arg = args.shift();
+        return type === 'd' ? String(Math.round(arg)) : String(arg);
+    });
 }
 
 async function run(argv) {
@@ -72,7 +82,7 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
         }
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-        this._balance0 = new PopupMenu.PopupMenuItem('Reclaim empty chunks  (balance -dusage=0)');
+        this._balance0 = new PopupMenu.PopupMenuItem(_('Reclaim empty chunks  (balance -dusage=0)'));
         this._balance0.connect('activate', () => this._balance(0));
         this.menu.addMenuItem(this._balance0);
 
@@ -81,14 +91,14 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
         this.menu.addMenuItem(this._balanceN);
         this._updateBalanceItem();
 
-        this._usage = new PopupMenu.PopupMenuItem('Show filesystem usage…');
+        this._usage = new PopupMenu.PopupMenuItem(_('Show filesystem usage…'));
         this._usage.connect('activate', () => this._showUsage());
         this.menu.addMenuItem(this._usage);
     }
 
     _updateBalanceItem() {
         const dusage = this._ext.getSettings().get_int('dusage');
-        this._balanceN.label.text = `Compact chunks <${dusage}% full  (balance -dusage=${dusage})`;
+        this._balanceN.label.text = format(_('Compact chunks <%d%% full  (balance -dusage=%d)'), dusage, dusage);
     }
 
     async start() {
@@ -135,17 +145,17 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
         this._label.text = fmt(s.unalloc);
         this._icon.icon_name = low ? 'dialog-warning-symbolic' : 'drive-harddisk-symbolic';
         this._label.style = low ? 'color: #ff5555; font-weight: bold;' : '';
-        this._info.unalloc.label.text = `${this._mount} unallocated: ${fmt(s.unalloc)} of ${fmt(s.devSize)}`;
-        this._info.data.label.text = `Data: ${fmt(s.space.data.used)} used of ${fmt(s.space.data.total)}`;
-        this._info.meta.label.text = `Metadata: ${fmt(s.space.metadata.used)} used of ${fmt(s.space.metadata.total)}`;
+        this._info.unalloc.label.text = format(_('%s unallocated: %s of %s'), this._mount, fmt(s.unalloc), fmt(s.devSize));
+        this._info.data.label.text = format(_('Data: %s used of %s'), fmt(s.space.data.used), fmt(s.space.data.total));
+        this._info.meta.label.text = format(_('Metadata: %s used of %s'), fmt(s.space.metadata.used), fmt(s.space.metadata.total));
 
         const now = GLib.get_monotonic_time() / 1e6;
         if (low && (!this._alerted || now - this._lastAlert > REALERT_SECONDS)) {
             this._alerted = true;
             this._lastAlert = now;
-            this._notify('Btrfs: low unallocated space',
-                `${this._mount} has only ${fmt(s.unalloc)} unallocated. Metadata cannot grow and writes will stall. ` +
-                'Open the Btrfs Guard menu to reclaim space.', true);
+            this._notify(_('Btrfs: low unallocated space'),
+                format(_('%s has only %s unallocated. Metadata cannot grow and writes will stall. ' +
+                'Open the Btrfs Guard menu to reclaim space.'), this._mount, fmt(s.unalloc)), true);
         } else if (!low) {
             this._alerted = false;
         }
@@ -180,21 +190,22 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
     async _balance(usage) {
         if (this._busy)
             return;
-        this._setBusy(true, `balancing -dusage=${usage}…`);
-        const title = `Btrfs balance -dusage=${usage}`;
+        this._setBusy(true, format(_('balancing -dusage=%d…'), usage));
+        const title = format(_('Btrfs balance -dusage=%d'), usage);
         try {
             const r = await run(['pkexec', BTRFS, 'balance', 'start', `-dusage=${usage}`, this._mount]);
             if (r.status === 0) {
                 const s = await this._refresh();
-                this._notify(`${title} finished`,
-                    `${r.stdout.trim().split('\n').pop()}${s ? `\nUnallocated now: ${fmt(s.unalloc)}` : ''}`);
+                const summary = r.stdout.trim().split('\n').pop();
+                this._notify(format(_('%s finished'), title),
+                    s ? `${summary}\n${format(_('Unallocated now: %s'), fmt(s.unalloc))}` : summary);
             } else if (r.status === 126 || r.status === 127) {
-                this._notify(`${title} cancelled`, 'Authentication was dismissed or denied.');
+                this._notify(format(_('%s cancelled'), title), _('Authentication was dismissed or denied.'));
             } else {
-                this._notify(`${title} failed`, (r.stderr || r.stdout).trim().split('\n').slice(-3).join('\n'));
+                this._notify(format(_('%s failed'), title), (r.stderr || r.stdout).trim().split('\n').slice(-3).join('\n'));
             }
         } catch (e) {
-            this._notify(`${title} failed`, `${e}`);
+            this._notify(format(_('%s failed'), title), `${e}`);
         } finally {
             this._setBusy(false);
             await this._refresh();
@@ -221,13 +232,13 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
         }
         const dialog = new ModalDialog.ModalDialog({styleClass: 'prompt-dialog'});
         dialog.contentLayout.add_child(new St.Label({
-            text: `btrfs filesystem usage ${this._mount}`,
+            text: format(_('btrfs filesystem usage %s'), this._mount),
             style: 'font-weight: bold; padding-bottom: 8px;',
         }));
         const scroll = new St.ScrollView({style: 'max-height: 520px;'});
         scroll.add_child(new St.Label({text: text.trim(), style: 'font-family: monospace;'}));
         dialog.contentLayout.add_child(scroll);
-        dialog.addButton({label: 'Close', action: () => dialog.close(), key: Clutter.KEY_Escape});
+        dialog.addButton({label: _('Close'), action: () => dialog.close(), key: Clutter.KEY_Escape});
         dialog.open();
     }
 

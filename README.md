@@ -28,6 +28,15 @@ Open via *Extensions* app → Btrfs Guard → gear icon (or `gnome-extensions pr
 
 Settings are stored in GSettings under `org.gnome.shell.extensions.btrfs-guard`.
 
+## Translations
+
+User-facing strings are marked with gettext (domain `btrfs-guard`). Russian (`ru`) is shipped; to add a language, create `po/<lang>.po` from `po/btrfs-guard.pot` (refresh with `xgettext --from-code=UTF-8 --keyword=_ -o po/btrfs-guard.pot extension.js prefs.js`), translate, then build and install:
+
+```sh
+mkdir -p locale/<lang>/LC_MESSAGES
+msgfmt po/<lang>.po -o locale/<lang>/LC_MESSAGES/btrfs-guard.mo
+```
+
 ## Install from source
 
 ```sh

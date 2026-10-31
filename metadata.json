@@ -3,6 +3,7 @@
   "name": "Btrfs Guard",
   "description": "Shows unallocated space of configured btrfs partitions, alerts when below 1 GiB, and runs balance -dusage=N / filesystem usage via pkexec.",
   "settings-schema": "org.gnome.shell.extensions.btrfs-guard",
+  "gettext-domain": "btrfs-guard",
   "shell-version": ["46", "47", "48", "49", "50", "51"],
   "version": 2
 }

@@ -2,14 +2,14 @@ import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk';
 
-import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
+import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 export default class BtrfsGuardPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         const settings = this.getSettings();
 
         const page = new Adw.PreferencesPage({
-            title: 'Btrfs Guard',
+            title: _('Btrfs Guard'),
             icon_name: 'drive-harddisk-symbolic',
         });
         window.add(page);
@@ -17,8 +17,8 @@ export default class BtrfsGuardPreferences extends ExtensionPreferences {
         // --- Watched partitions ---
 
         const mountsGroup = new Adw.PreferencesGroup({
-            title: 'Watched partitions',
-            description: 'Btrfs mount points monitored in the panel. One indicator is shown per mount point.',
+            title: _('Watched partitions'),
+            description: _('Btrfs mount points monitored in the panel. One indicator is shown per mount point.'),
         });
         page.add(mountsGroup);
 
@@ -54,7 +54,7 @@ export default class BtrfsGuardPreferences extends ExtensionPreferences {
             const remove = new Gtk.Button({
                 icon_name: 'user-trash-symbolic',
                 valign: Gtk.Align.CENTER,
-                tooltip_text: 'Remove this mount point',
+                tooltip_text: _('Remove this mount point'),
             });
             remove.connect('clicked', () => {
                 list.remove(row);
@@ -98,7 +98,7 @@ export default class BtrfsGuardPreferences extends ExtensionPreferences {
             hexpand: true,
         });
         const addButton = new Gtk.Button({
-            label: 'Add',
+            label: _('Add'),
             valign: Gtk.Align.CENTER,
         });
         const doAdd = () => {
@@ -112,7 +112,7 @@ export default class BtrfsGuardPreferences extends ExtensionPreferences {
         addButton.connect('clicked', doAdd);
         addEntry.connect('activate', doAdd);
         const detectButton = new Gtk.Button({
-            label: 'Detect btrfs mounts',
+            label: _('Detect btrfs mounts'),
             valign: Gtk.Align.CENTER,
         });
         detectButton.connect('clicked', () => detectAndAdd());
@@ -124,14 +124,14 @@ export default class BtrfsGuardPreferences extends ExtensionPreferences {
         // --- Balance threshold ---
 
         const balanceGroup = new Adw.PreferencesGroup({
-            title: 'Space reclaim',
-            description: 'Chunks that are less full than this percentage are compacted by the "balance -dusage=N" menu action.',
+            title: _('Space reclaim'),
+            description: _('Chunks that are less full than this percentage are compacted by the "balance -dusage=N" menu action.'),
         });
         page.add(balanceGroup);
 
         const dusageRow = new Adw.SpinRow({
-            title: 'Chunk usage threshold',
-            subtitle: 'Used by balance -dusage=N (0–100%)',
+            title: _('Chunk usage threshold'),
+            subtitle: _('Used by balance -dusage=N (0–100%)'),
             adjustment: new Gtk.Adjustment({
                 lower: 0,
                 upper: 100,
