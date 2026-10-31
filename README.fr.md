@@ -2,6 +2,11 @@
 
 Indicateur du panneau qui surveille l'**espace non alloué** de vos systèmes de fichiers btrfs et vous aide à le récupérer avant que les écritures ne se bloquent.
 
+<p align="center">
+  <img src="docs/menu.png" alt="Menu du panneau avec l'espace non alloué et les actions de récupération" height="300">
+  <img src="docs/usage.png" alt="Boîte de dialogue d'utilisation du système de fichiers" height="300">
+</p>
+
 ## Fonctionnement
 
 btrfs ne rend pas l'espace disque à « non alloué » lorsque des fichiers sont supprimés. L'espace est attribué en **chunks** de taille fixe (généralement 1 GiB pour les données, 256 MiB pour les métadonnées). Lorsque btrfs manque d'espace non alloué, il ne peut plus allouer de nouveaux chunks : les métadonnées ne peuvent plus croître et les écritures se bloquent, alors même que `df` peut encore sembler correct. La récupération à ce stade est pénible.

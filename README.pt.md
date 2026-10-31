@@ -2,6 +2,11 @@
 
 Indicador no painel que monitoriza o **espaço não alocado** dos seus sistemas de ficheiros btrfs e ajuda a recuperá-lo antes que as escritas bloqueiem.
 
+<p align="center">
+  <img src="docs/menu.png" alt="Menu do painel com o espaço não alocado e as ações de recuperação" height="300">
+  <img src="docs/usage.png" alt="Diálogo de utilização do sistema de ficheiros" height="300">
+</p>
+
 ## Como funciona
 
 O btrfs não devolve o espaço para "não alocado" quando os ficheiros são apagados. O espaço é atribuído em **chunks** de tamanho fixo (normalmente 1 GiB para dados, 256 MiB para metadados). Quando o btrfs fica sem espaço não alocado, não consegue alocar novos chunks — os metadados deixam de poder crescer e as escritas bloqueiam, mesmo que `df` ainda pareça normal. Recuperar a partir desse ponto é difícil.

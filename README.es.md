@@ -2,6 +2,11 @@
 
 Indicador en el panel que vigila el **espacio no asignado** de tus sistemas de archivos btrfs y te ayuda a recuperarlo antes de que las escrituras se bloqueen.
 
+<p align="center">
+  <img src="docs/menu.png" alt="Menú del panel con el espacio no asignado y las acciones de recuperación" height="300">
+  <img src="docs/usage.png" alt="Diálogo de uso del sistema de archivos" height="300">
+</p>
+
 ## Cómo funciona
 
 btrfs no devuelve el espacio en disco a "sin asignar" cuando se borran archivos. El espacio se reparte en **fragmentos** (chunks) de tamaño fijo (normalmente 1 GiB para datos y 256 MiB para metadatos). Cuando btrfs se queda sin espacio sin asignar, no puede reservar nuevos fragmentos: los metadatos ya no pueden crecer y las escrituras se bloquean, aunque `df` aún muestre valores razonables. En ese punto, la recuperación es complicada.
