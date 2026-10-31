@@ -25,7 +25,7 @@ Btrfs Guard continuously monitors unallocated space and offers one-click balanci
 
 Open via *Extensions* app → Btrfs Guard → gear icon (or `gnome-extensions prefs btrfs-guard@ak0.org`):
 
-- **Watched partitions** — list of btrfs mount points; one panel indicator each. Add manually or click *Detect btrfs mounts* to auto-fill all btrfs filesystems from `findmnt`.
+- **Watched partitions** — list of btrfs mount points; one panel indicator each. Add manually or click *Detect btrfs mounts* to auto-fill all btrfs filesystems from `findmnt` (one mount per filesystem; stale mounts without a UUID are skipped).
 - **Chunk usage threshold** — the `N` in `balance -dusage=N` (0–100 %, default 60).
 
 Settings are stored in GSettings under `org.gnome.shell.extensions.btrfs-guard`.
@@ -51,5 +51,5 @@ cp -r . ~/.local/share/gnome-shell/extensions/btrfs-guard@ak0.org
 
 ## Requirements
 
-- GNOME Shell 46 or newer
+- GNOME Shell 48 or newer
 - btrfs-progs (`/usr/bin/btrfs`) and polkit (`pkexec`) — used only for balance/usage actions

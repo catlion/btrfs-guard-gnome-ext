@@ -23,7 +23,7 @@ O Btrfs Guard monitoriza continuamente o espaço não alocado e oferece equilíb
 
 Abra através da aplicação *Extensões* → Btrfs Guard → ícone de engrenagem (ou `gnome-extensions prefs btrfs-guard@ak0.org`):
 
-- **Partições monitorizadas** — lista de pontos de montagem btrfs; um indicador no painel por cada um. Adicione manualmente ou clique em *Detetar montagens btrfs* para preencher automaticamente todos os sistemas de ficheiros btrfs a partir de `findmnt`.
+- **Partições monitorizadas** — lista de pontos de montagem btrfs; um indicador no painel por cada um. Adicione manualmente ou clique em *Detetar montagens btrfs* para preencher automaticamente todos os sistemas de ficheiros btrfs a partir de `findmnt` (uma montagem por sistema de ficheiros; as montagens obsoletas sem UUID são ignoradas).
 - **Limite de utilização do chunk** — o `N` em `balance -dusage=N` (0–100 %, predefinido 60).
 
 As definições são guardadas no GSettings em `org.gnome.shell.extensions.btrfs-guard`.
@@ -49,5 +49,5 @@ cp -r . ~/.local/share/gnome-shell/extensions/btrfs-guard@ak0.org
 
 ## Requisitos
 
-- GNOME Shell 46 ou posterior
+- GNOME Shell 48 ou posterior
 - btrfs-progs (`/usr/bin/btrfs`) e polkit (`pkexec`) — usados apenas nas ações de equilíbrio/utilização
