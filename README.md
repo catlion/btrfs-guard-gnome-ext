@@ -2,7 +2,7 @@
 
 Panel indicator that watches the **unallocated space** of your btrfs filesystems and helps you reclaim it before writes stall.
 
-**Languages:** [English](README.md) · [Русский](README.ru.md) · [中文](README.zh.md) · [Español](README.es.md) · [Français](README.fr.md) · [Português](README.pt.md) · [Deutsch](README.de.md)
+**Languages:** [English](README.md) · [Русский](README.ru.md) · [中文](README.zh.md) · [Español](README.es.md) · [Français](README.fr.md) · [Português](README.pt.md) · [Deutsch](README.de.md) · [العربية](README.ar.md)
 
 <p align="center">
   <img src="docs/menu.png" alt="Panel menu showing unallocated space and reclaim actions" height="300">
