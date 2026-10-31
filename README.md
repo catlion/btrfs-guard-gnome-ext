@@ -40,5 +40,5 @@ cp -r . ~/.local/share/gnome-shell/extensions/btrfs-guard@ak.local
 
 ## Requirements
 
-- GNOME Shell 51
+- GNOME Shell 46 or newer
 - btrfs-progs (`/usr/bin/btrfs`) and polkit (`pkexec`) — used only for balance/usage actions
