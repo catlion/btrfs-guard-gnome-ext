@@ -2,6 +2,7 @@ import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
+import Pango from 'gi://Pango';
 import St from 'gi://St';
 
 import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
@@ -304,10 +305,15 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
                 text: format(_('btrfs filesystem usage %s'), this._mount),
                 style: 'font-weight: bold; padding-bottom: 8px;',
             }));
-            const scroll = new St.ScrollView({style: 'max-height: 520px;'});
+            const scroll = new St.ScrollView({
+                style: 'min-width: 640px; max-height: 520px;',
+                hscrollbar_policy: St.PolicyType.AUTOMATIC,
+            });
             // St.ScrollView only accepts St.Scrollable children (a bare St.Label renders nothing)
             const body = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL});
-            body.add_child(new St.Label({text: text.trim(), style: 'font-family: monospace;'}));
+            const label = new St.Label({text: text.trim(), style: 'font-family: monospace;'});
+            label.clutter_text.ellipsize = Pango.EllipsizeMode.NONE;
+            body.add_child(label);
             scroll.add_child(body);
             dialog.contentLayout.add_child(scroll);
             dialog.addButton({label: _('Close'), action: () => dialog.close(), key: Clutter.KEY_Escape});
