@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.btrfs-guard" path="/org/gnome/shell/extensions/btrfs-guard/">
+    <key name="mounts" type="as">
+      <default>['/home']</default>
+      <summary>Watched btrfs mount points</summary>
+      <description>Mount points of btrfs filesystems shown in the panel and checked for low unallocated space.</description>
+    </key>
+    <key name="dusage" type="i">
+      <default>60</default>
+      <range min="0" max="100"/>
+      <summary>Balance chunk usage threshold (%)</summary>
+      <description>Chunks that are less full than this percentage are reclaimed by the "balance -dusage=N" menu action.</description>
+    </key>
+  </schema>
+</schemalist>
