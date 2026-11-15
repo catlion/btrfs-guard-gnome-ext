@@ -32,7 +32,7 @@ Btrfs Guard überwacht den nicht zugewiesenen Speicher fortlaufend und bietet ei
 
 Öffnen über die App *Erweiterungen* → Btrfs Guard → Zahnradsymbol (oder `gnome-extensions prefs btrfs-guard@ak0.org`):
 
-- **Überwachte Partitionen** — Liste der btrfs-Einhängepunkte; je einer ein Indikator im Panel. Manuell hinzufügen oder auf *Btrfs-Einhängungen erkennen* klicken, um alle btrfs-Dateisysteme aus `findmnt` automatisch einzutragen (ein Einhängepunkt pro Dateisystem; veraltete Einhängungen ohne UUID werden übersprungen).
+- **Überwachte Partitionen** — Liste der btrfs-Einhängepunkte; alle werden in einem einzigen Panel-Indikator angezeigt (ein Symbol, dann eine Kurzgröße wie `120G` je Einhängepunkt) mit einem Untermenü pro Einhängepunkt. Manuell hinzufügen oder auf *Btrfs-Einhängungen erkennen* klicken, um alle btrfs-Dateisysteme aus `findmnt` automatisch einzutragen (ein Einhängepunkt pro Dateisystem; veraltete Einhängungen ohne UUID werden übersprungen).
 - **Schwellenwert für Chunk-Auslastung** — das `N` in `balance -dusage=N` (0–100 %, Standard 60).
 
 Die Einstellungen werden in GSettings unter `org.gnome.shell.extensions.btrfs-guard` gespeichert.

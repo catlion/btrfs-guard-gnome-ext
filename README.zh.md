@@ -30,7 +30,7 @@ Btrfs Guard 会持续监视未分配空间，并提供一键平衡（balance）�
 
 通过 *Extensions* 应用 → Btrfs Guard → 齿轮图标打开（或运行 `gnome-extensions prefs btrfs-guard@ak0.org`）：
 
-- **监视的分区**——btrfs 挂载点列表；每个挂载点对应一个面板指示器。可手动添加，或点击 *Detect btrfs mounts* 从 `findmnt` 自动填充所有 btrfs 文件系统（每个文件系统只添加一个挂载点，跳过没有 UUID 的失效挂载）。
+- **监视的分区**——btrfs 挂载点列表；全部显示在同一个面板指示器中（一个图标，后跟每个挂载点的简短大小，如 `120G`），每个挂载点有一个子菜单。可手动添加，或点击 *Detect btrfs mounts* 从 `findmnt` 自动填充所有 btrfs 文件系统（每个文件系统只添加一个挂载点，跳过没有 UUID 的失效挂载）。
 - **块使用率阈值**——`balance -dusage=N` 中的 `N`（0–100%，默认 60）。
 
 设置保存在 GSettings 的 `org.gnome.shell.extensions.btrfs-guard` 下。

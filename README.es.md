@@ -30,7 +30,7 @@ Btrfs Guard supervisa continuamente el espacio sin asignar y ofrece equilibrado 
 
 Se abren desde la aplicación *Extensiones* → Btrfs Guard → icono de engranaje (o con `gnome-extensions prefs btrfs-guard@ak0.org`):
 
-- **Particiones vigiladas**: lista de puntos de montaje de btrfs; un indicador en el panel por cada uno. Añádelos manualmente o pulsa *Detectar montajes de btrfs* para rellenar automáticamente todos los sistemas de archivos btrfs a partir de `findmnt` (un montaje por sistema de archivos; se omiten los montajes obsoletos sin UUID).
+- **Particiones vigiladas**: lista de puntos de montaje de btrfs; todos se muestran en un único indicador del panel (un icono y luego un tamaño corto como `120G` por montaje) con un submenú por montaje. Añádelos manualmente o pulsa *Detectar montajes de btrfs* para rellenar automáticamente todos los sistemas de archivos btrfs a partir de `findmnt` (un montaje por sistema de archivos; se omiten los montajes obsoletos sin UUID).
 - **Umbral de uso de fragmentos**: la `N` en `balance -dusage=N` (0–100 %, por defecto 60).
 
 Los ajustes se guardan en GSettings bajo `org.gnome.shell.extensions.btrfs-guard`.

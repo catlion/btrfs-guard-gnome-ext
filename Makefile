@@ -6,12 +6,12 @@ ZIP := out/$(UUID)-v$(VERSION).shell-extension.zip
 
 zip: $(ZIP)
 
-$(ZIP): extension.js prefs.js metadata.json schemas/org.gnome.shell.extensions.btrfs-guard.gschema.xml $(wildcard po/*.po) LICENSE
+$(ZIP): extension.js prefs.js metadata.json schemas/org.gnome.shell.extensions.btrfs-guard.gschema.xml $(wildcard po/*.po) LICENSE docs/icon.png
 	mkdir -p out
 	gnome-extensions pack . -o out --force \
 	  --schema=schemas/org.gnome.shell.extensions.btrfs-guard.gschema.xml \
 	  --podir=po --gettext-domain=btrfs-guard \
-	  --extra-source=LICENSE
+	  --extra-source=LICENSE --extra-source=docs/icon.png
 	mv out/$(UUID).shell-extension.zip $(ZIP)
 
 # Run the packaged extension in a throwaway nested GNOME Shell (own D-Bus

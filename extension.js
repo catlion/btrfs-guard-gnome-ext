@@ -32,6 +32,17 @@ function fmt(bytes) {
     return `${bytes.toFixed(i >= 3 ? 2 : 0)} ${units[i]}`;
 }
 
+// compact panel form: whole number and one-letter unit, e.g. 120G, 512M
+function fmtShort(bytes) {
+    const units = ['B', 'K', 'M', 'G', 'T', 'P'];
+    let i = 0;
+    while (Math.round(bytes) >= 1024 && i < units.length - 1) {
+        bytes /= 1024;
+        i++;
+    }
+    return `${Math.round(bytes)}${units[i]}`;
+}
+
 // printf-style interpolation for translated strings (%% escapes a literal %)
 function format(str, ...args) {
     return str.replace(/%%|%([sd])/g, (m, type) => {
@@ -71,11 +82,12 @@ async function listDir(path) {
     return out;
 }
 
-const Indicator = GObject.registerClass(
-class BtrfsGuardIndicator extends PanelMenu.Button {
-    _init(ext, mount) {
-        super._init(0.0, `Btrfs Guard ${mount}`);
-        this._ext = ext;
+// one watched btrfs mount: its panel label, its submenu in the shared menu,
+// polling state and maintenance actions
+class Mount {
+    constructor(indicator, mount) {
+        this._indicator = indicator;
+        this._ext = indicator._ext;
         this._mount = mount;
         this._busy = false;
         this._refreshing = false;
@@ -84,40 +96,51 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
         this._devSize = null;    // /sys/class/block/<dev>/size (single-device fallback)
         this._lastAlert = 0;
         this._alerted = false;
-        this._source = null;
+        this.low = false;
 
-        const box = new St.BoxLayout({style_class: 'panel-status-menu-box'});
-        this._icon = new St.Icon({icon_name: 'drive-harddisk-symbolic', style_class: 'system-status-icon'});
-        this._label = new St.Label({text: '…', y_align: Clutter.ActorAlign.CENTER});
-        box.add_child(this._icon);
-        box.add_child(this._label);
-        this.add_child(box);
+        this.label = new St.Label({text: '…', y_align: Clutter.ActorAlign.CENTER});
+
+        this.item = new PopupMenu.PopupSubMenuMenuItem(`${mount}  …`, true);
+        this.item.icon.icon_name = 'drive-harddisk-symbolic';
+        const menu = this.item.menu;
 
         this._info = {};
-        for (const key of ['unalloc', 'data', 'meta']) {
+        for (const key of ['data', 'meta']) {
             const item = new PopupMenu.PopupMenuItem('', {reactive: false, can_focus: false});
             this._info[key] = item;
-            this.menu.addMenuItem(item);
+            menu.addMenuItem(item);
         }
-        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
         this._balance0 = new PopupMenu.PopupMenuItem(_('Reclaim empty chunks  (balance -dusage=0)'));
         this._balance0.connect('activate', () => this._balance(0));
-        this.menu.addMenuItem(this._balance0);
+        menu.addMenuItem(this._balance0);
 
         this._balanceN = new PopupMenu.PopupMenuItem('');
         this._balanceN.connect('activate', () => this._balance(this._ext.getSettings().get_int('dusage')));
-        this.menu.addMenuItem(this._balanceN);
-        this._updateBalanceItem();
+        menu.addMenuItem(this._balanceN);
+        this.updateBalanceItem();
 
         this._usage = new PopupMenu.PopupMenuItem(_('Show filesystem usage…'));
         this._usage.connect('activate', () => this._showUsage());
-        this.menu.addMenuItem(this._usage);
+        menu.addMenuItem(this._usage);
     }
 
-    _updateBalanceItem() {
+    updateBalanceItem() {
         const dusage = this._ext.getSettings().get_int('dusage');
         this._balanceN.label.text = format(_('Compact chunks <%d%% full  (balance -dusage=%d)'), dusage, dusage);
+    }
+
+    _setLow(low) {
+        this.low = low;
+        this.label.style = low ? 'color: #ff5555; font-weight: bold;' : '';
+        this.item.icon.icon_name = low ? 'dialog-warning-symbolic' : 'drive-harddisk-symbolic';
+        this._indicator?.syncIcon();
+    }
+
+    _setUnavailable() {
+        this.label.text = 'n/a';
+        this.item.label.text = `${this._mount}  n/a`;
     }
 
     async _resolve() {
@@ -132,7 +155,7 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
             this._resolveFailed = false;
             return true;
         } catch (e) {
-            this._label.text = 'n/a';
+            this._setUnavailable();
             if (!this._resolveFailed) {
                 this._resolveFailed = true;
                 console.error(`btrfs-guard: cannot resolve ${this._mount}: ${e}`);
@@ -141,15 +164,7 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
         }
     }
 
-    async start() {
-        await this._tick();
-        this._timer = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, POLL_SECONDS, () => {
-            this._tick();
-            return GLib.SOURCE_CONTINUE;
-        });
-    }
-
-    async _tick() {
+    async tick() {
         if (await this._resolve())
             await this._refresh();
     }
@@ -197,14 +212,17 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
             try {
                 s = await this._stats();
             } catch (e) {
-                this._label.text = 'n/a';
+                if (this._indicator)
+                    this._setUnavailable();
                 return null;
             }
+            if (!this._indicator)
+                return null;    // indicator destroyed while reading stats
             const low = s.unalloc < THRESHOLD;
-            this._label.text = fmt(s.unalloc);
-            this._icon.icon_name = low ? 'dialog-warning-symbolic' : 'drive-harddisk-symbolic';
-            this._label.style = low ? 'color: #ff5555; font-weight: bold;' : '';
-            this._info.unalloc.label.text = format(_('%s unallocated: %s of %s'), this._mount, fmt(s.unalloc), fmt(s.devSize));
+            if (!this._busy)
+                this.label.text = fmtShort(s.unalloc);
+            this._setLow(low);
+            this.item.label.text = format(_('%s unallocated: %s of %s'), this._mount, fmt(s.unalloc), fmt(s.devSize));
             this._info.data.label.text = format(_('Data: %s used of %s'), fmt(s.space.data.used), fmt(s.space.data.total));
             this._info.meta.label.text = format(_('Metadata: %s used of %s'), fmt(s.space.metadata.used), fmt(s.space.metadata.total));
 
@@ -212,7 +230,7 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
             if (low && (!this._alerted || now - this._lastAlert > REALERT_SECONDS)) {
                 this._alerted = true;
                 this._lastAlert = now;
-                this._notify(_('Btrfs: low unallocated space'),
+                this._indicator.notify(_('Btrfs: low unallocated space'),
                     format(_('%s has only %s unallocated. Metadata cannot grow and writes will stall. ' +
                     'Open the Btrfs Guard menu to reclaim space.'), this._mount, fmt(s.unalloc)), true);
             } else if (!low) {
@@ -224,29 +242,12 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
         }
     }
 
-    _notify(title, body, critical = false) {
-        if (!this._source) {
-            this._source = new MessageTray.Source({title: 'Btrfs Guard', iconName: 'drive-harddisk-symbolic'});
-            this._source.connect('destroy', () => {
-                this._source = null;
-            });
-            Main.messageTray.add(this._source);
-        }
-        const n = new MessageTray.Notification({
-            source: this._source,
-            title,
-            body,
-            urgency: critical ? MessageTray.Urgency.CRITICAL : MessageTray.Urgency.NORMAL,
-        });
-        this._source.addNotification(n);
-    }
-
     _setBusy(busy, text) {
         this._busy = busy;
         for (const item of [this._balance0, this._balanceN, this._usage])
             item.setSensitive(!busy);
         if (busy)
-            this._label.text = text;
+            this.label.text = text;
     }
 
     // stdout on success, null when the user dismissed the auth dialog, error output otherwise
@@ -267,17 +268,18 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
             const r = await run(['pkexec', BTRFS, 'balance', 'start', `-dusage=${usage}`, this._mount]);
             const result = this._pkexecResult(r);
             if (result === null) {
-                this._notify(format(_('%s cancelled'), title), _('Authentication was dismissed or denied.'));
+                this._indicator.notify(format(_('%s cancelled'), title), _('Authentication was dismissed or denied.'));
             } else if (r.status !== 0) {
-                this._notify(format(_('%s failed'), title), result.split('\n').slice(-3).join('\n'));
+                this._indicator.notify(format(_('%s failed'), title), result.split('\n').slice(-3).join('\n'));
             } else {
+                this._setBusy(false);
                 const s = await this._refresh();
                 const summary = result.trim().split('\n').pop() || _('Balance completed');
-                this._notify(format(_('%s finished'), title),
+                this._indicator.notify(format(_('%s finished'), title),
                     s ? `${summary}\n${format(_('Unallocated now: %s'), fmt(s.unalloc))}` : summary);
             }
         } catch (e) {
-            this._notify(format(_('%s failed'), title), `${e}`);
+            this._indicator.notify(format(_('%s failed'), title), `${e}`);
         } finally {
             this._setBusy(false);
             await this._refresh();
@@ -320,8 +322,84 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
             dialog.open();
         } catch (e) {
             console.error(`btrfs-guard: cannot show usage dialog: ${e}\n${e.stack}`);
-            this._notify(_('Btrfs Guard'), `${e}`);
+            this._indicator.notify(_('Btrfs Guard'), `${e}`);
         }
+    }
+
+    destroy() {
+        this._indicator = null;
+        this._balance0 = null;
+        this._balanceN = null;
+        this._usage = null;
+    }
+}
+
+// single panel button: one icon followed by the short unallocated size of
+// every watched mount; the menu has one submenu per mount
+const Indicator = GObject.registerClass(
+class BtrfsGuardIndicator extends PanelMenu.Button {
+    _init(ext, mounts) {
+        super._init(0.0, 'Btrfs Guard');
+        this._ext = ext;
+        this._source = null;
+
+        const box = new St.BoxLayout({style_class: 'panel-status-menu-box', style: 'spacing: 6px;'});
+        this._icon = new St.Icon({icon_name: 'drive-harddisk-symbolic', style_class: 'system-status-icon'});
+        box.add_child(this._icon);
+        this.add_child(box);
+
+        this._mounts = mounts.map(m => new Mount(this, m));
+        for (const m of this._mounts) {
+            box.add_child(m.label);
+            this.menu.addMenuItem(m.item);
+        }
+
+        // with a single mount there is nothing to choose: show its details right away
+        this.menu.connect('open-state-changed', (menu, open) => {
+            if (open && this._mounts.length === 1)
+                this._mounts[0].item.setSubmenuShown(true);
+        });
+    }
+
+    syncIcon() {
+        const low = this._mounts.some(m => m.low);
+        this._icon.icon_name = low ? 'dialog-warning-symbolic' : 'drive-harddisk-symbolic';
+    }
+
+    updateBalanceItems() {
+        for (const m of this._mounts)
+            m.updateBalanceItem();
+    }
+
+    async _tick() {
+        await Promise.all(this._mounts.map(m => m.tick()));
+    }
+
+    async start() {
+        await this._tick();
+        if (!this._mounts)
+            return;     // destroyed while the first tick was running
+        this._timer = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, POLL_SECONDS, () => {
+            this._tick();
+            return GLib.SOURCE_CONTINUE;
+        });
+    }
+
+    notify(title, body, critical = false) {
+        if (!this._source) {
+            this._source = new MessageTray.Source({title: 'Btrfs Guard', iconName: 'drive-harddisk-symbolic'});
+            this._source.connect('destroy', () => {
+                this._source = null;
+            });
+            Main.messageTray.add(this._source);
+        }
+        const n = new MessageTray.Notification({
+            source: this._source,
+            title,
+            body,
+            urgency: critical ? MessageTray.Urgency.CRITICAL : MessageTray.Urgency.NORMAL,
+        });
+        this._source.addNotification(n);
     }
 
     destroy() {
@@ -331,47 +409,40 @@ class BtrfsGuardIndicator extends PanelMenu.Button {
         }
         this._source?.destroy();
         super.destroy();
-        this._balance0 = null;
-        this._balanceN = null;
-        this._usage = null;
+        for (const m of this._mounts)
+            m.destroy();
+        this._mounts = null;
     }
 });
 
 export default class BtrfsGuardExtension extends Extension {
     enable() {
         this._settings = this.getSettings();
-        this._indicators = [];
+        this._indicator = null;
         this._handlers = [
             this._settings.connect('changed::mounts', () => this._rebuild()),
-            this._settings.connect('changed::dusage', () => {
-                for (const i of this._indicators)
-                    i._updateBalanceItem();
-            }),
+            this._settings.connect('changed::dusage', () => this._indicator?.updateBalanceItems()),
         ];
         this._rebuild();
     }
 
     _rebuild() {
-        for (const i of this._indicators)
-            i.destroy();
-        this._indicators = [];
-        for (const mount of this._settings.get_strv('mounts')) {
-            if (!mount)
-                continue;
-            const indicator = new Indicator(this, mount);
-            Main.panel.addToStatusArea(`${this.uuid}-${mount}`, indicator);
-            indicator.start();
-            this._indicators.push(indicator);
-        }
+        this._indicator?.destroy();
+        this._indicator = null;
+        const mounts = this._settings.get_strv('mounts').filter(m => m);
+        if (mounts.length === 0)
+            return;
+        this._indicator = new Indicator(this, mounts);
+        Main.panel.addToStatusArea(this.uuid, this._indicator);
+        this._indicator.start();
     }
 
     disable() {
         for (const id of this._handlers)
             this._settings.disconnect(id);
         this._handlers = [];
-        for (const i of this._indicators)
-            i.destroy();
-        this._indicators = [];
+        this._indicator?.destroy();
+        this._indicator = null;
         this._settings = null;
     }
 }
